@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Proje Pusulası</title>
+<meta name="theme-color" content="#1D1B4D">
+<meta name="description" content="Projelerini, yol haritalarını ve sıradaki adımları takip et; Gemini ile güncelle.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pusula">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Nunito:wght@500;600;700&display=swap">
+<style>
+/* Düzen: tek sütun, alt gezinme çubuğu; telefon önce. Tema: çıkartma havası, kalın çerçeve ve sert gölge. */
+:root{
+  color-scheme:light;
+  --bg:#E6F3FF; --dots:#B9D8F3; --surface:#FFFFFF; --ink:#1D1B4D; --muted:#555887;
+  --bd:#1D1B4D; --sh:#1D1B4D; --line:#D5DEF2; --seg:#E3EAF8; --tick:#8D9AC8;
+  --sea:#0AA5BC; --sea-soft:#CDF2F7; --hazel:#F28A1E; --hazel-soft:#FFE5C4;
+  --ulva:#3FB653; --ulva-soft:#D6F4DA; --plum:#9B5CF0; --plum-soft:#EADCFF;
+  --sun:#FFD23F; --mark:#FFD23F; --on-sun:#1D1B4D;
+  --crit:#C81E3A; --crit-soft:#FFD6DC; --warn:#7A4E00; --warn-soft:#FFE59A;
+  --f-display:"Fredoka","Trebuchet MS",system-ui,sans-serif;
+  --f-body:"Nunito","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    color-scheme:dark;
+    --bg:#15133F; --dots:#24215F; --surface:#201D58; --ink:#F2F0FF; --muted:#ABA9DA;
+    --bd:#8E88FF; --sh:#0A0830; --line:#37337F; --seg:#2E2A75; --tick:#6C67C9;
+    --sea:#3ED6EA; --sea-soft:#0F4A63; --hazel:#FFA94D; --hazel-soft:#5A3410;
+    --ulva:#6BE07F; --ulva-soft:#1D4A2A; --plum:#C29BFF; --plum-soft:#412A7A;
+    --sun:#FFD84D; --mark:#5E4B00;
+    --crit:#FF8A9B; --crit-soft:#5A1E2C; --warn:#FFD66B; --warn-soft:#4F3C0A;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background-color:var(--bg);background-image:radial-gradient(var(--dots) 1.6px,transparent 1.8px);background-size:24px 24px;
+  color:var(--ink);font:500 16px/1.55 var(--f-body);
+  padding:max(18px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(96px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.wrap{max-width:760px;margin:0 auto}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;font-weight:600}
+h1{font-size:clamp(28px,8vw,40px);line-height:1;font-weight:700}
+h2{font-size:21px}
+h3{font-size:19px}
+p{margin:0}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--plum);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.muted{color:var(--muted)}
+.small{font-size:13.5px}
+
+.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px 16px;margin-bottom:18px}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.logo{width:48px;height:48px;flex:none}
+.logo .face{fill:var(--sun);stroke:var(--bd);stroke-width:3}
+.logo .n1{fill:var(--crit);stroke:var(--bd);stroke-width:1.5}
+.logo .n2{fill:var(--sea);stroke:var(--bd);stroke-width:1.5}
+.logo .pin{fill:var(--bd)}
+.logo .needle{transform-origin:32px 32px;animation:wiggle 4.5s ease-in-out infinite}
+@keyframes wiggle{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(16deg)}}
+.hl{background:linear-gradient(transparent 58%,var(--mark) 58% 92%,transparent 92%);padding:0 .1em}
+.today{font:500 12px/1.2 var(--f-mono);text-transform:uppercase;letter-spacing:.05em;background:var(--surface);border:2px solid var(--bd);border-radius:99px;padding:7px 12px;box-shadow:3px 3px 0 var(--sh)}
+.back{background:var(--surface);border:2px solid var(--bd);border-radius:99px;padding:8px 14px;font-weight:700;box-shadow:3px 3px 0 var(--sh)}
+
+nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:10;display:flex;gap:8px;background:var(--bg);border-top:2px solid var(--bd);padding:8px max(12px,env(safe-area-inset-right,0px)) calc(8px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
+nav.bottom button{flex:1;display:grid;justify-items:center;gap:2px;background:transparent;border:2px solid transparent;border-radius:14px;padding:6px 4px;font-size:12.5px;font-weight:700;color:var(--ink)}
+nav.bottom button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+nav.bottom button[aria-current="page"]{background:var(--sun);color:var(--on-sun);border-color:var(--bd);box-shadow:2px 2px 0 var(--sh)}
+
+.stats{display:flex;flex-wrap:wrap;gap:10px 12px;margin-bottom:22px;font-size:14px;font-weight:700}
+.stats span{background:var(--surface);border:2px solid var(--bd);border-radius:14px;padding:7px 12px;box-shadow:3px 3px 0 var(--sh);display:flex;align-items:baseline;gap:8px}
+.stats span:nth-child(odd){transform:rotate(-1deg)}
+.stats span:nth-child(even){transform:rotate(1deg)}
+.stats b{font:600 21px/1 var(--f-display);font-variant-numeric:tabular-nums}
+.stats .bad{background:var(--crit-soft)}
+.sect-h{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:26px 0 12px}
+.stack{display:grid;gap:16px;min-width:0}
+
+.card{background:var(--surface);background:color-mix(in srgb,var(--c,var(--sea)) 16%,var(--surface));border:2px solid var(--bd);border-radius:18px;padding:16px;display:grid;gap:11px;min-width:0;box-shadow:4px 4px 0 var(--sh)}
+.card-h{display:flex;align-items:center;gap:12px;min-width:0}
+.card-h h3{flex:1;min-width:0}
+.ava{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--c,var(--sea));border:2px solid var(--bd);color:var(--on-sun);font:700 19px/1 var(--f-display);flex:none;box-shadow:2px 2px 0 var(--sh)}
+.ava.big{width:54px;height:54px;font-size:27px}
+.pct{font:700 20px/1 var(--f-display);font-variant-numeric:tabular-nums;background:var(--sun);color:var(--on-sun);border:2px solid var(--bd);border-radius:99px;padding:6px 12px;transform:rotate(3deg)}
+.link{background:none;border:0;padding:0;text-align:left;font:inherit;color:inherit;text-decoration:underline;text-decoration-color:var(--bd);text-underline-offset:5px;text-decoration-thickness:2px;text-decoration-style:wavy}
+.stage{font:500 12px/1.3 var(--f-mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.next{font-size:15px}
+.lbl{display:inline-block;font:500 11px/1 var(--f-mono);text-transform:uppercase;letter-spacing:.05em;background:var(--sun);color:var(--on-sun);border-radius:6px;padding:3px 6px;margin-right:8px}
+.badges{display:flex;flex-wrap:wrap;gap:8px}
+.pill{display:inline-block;font:500 11px/1 var(--f-mono);text-transform:uppercase;letter-spacing:.05em;padding:5px 9px;border-radius:99px;background:var(--seg);color:var(--ink);border:1.5px solid var(--bd)}
+.pill.late{background:var(--crit-soft)}
+.pill.key{background:var(--warn-soft)}
+.pill.soon{background:var(--sea-soft)}
+.pill.ok{background:var(--ulva-soft)}
+.pill.stale{background:var(--plum-soft)}
+.pill.next{background:var(--surface)}
+
+.track{display:grid;gap:8px;min-width:0}
+.seg{min-width:0}
+.seg .bar{position:relative;display:block;height:22px;border:2px solid var(--bd);border-radius:99px;background:var(--surface);overflow:hidden}
+.seg .bar::before{content:"";position:absolute;inset:0 auto 0 0;width:var(--f);background:var(--c);transition:width .5s ease}
+.seg.cur .bar::before{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.45) 0 7px,transparent 7px 14px);background-size:28px 28px;animation:slide 1.2s linear infinite}
+@keyframes slide{to{background-position:28px 0}}
+.seg.cur .bar{box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--c)}
+.seg .tick{display:block;height:5px;margin-top:6px;border-right:1.5px solid var(--tick);background:repeating-linear-gradient(to right,var(--tick) 0 1.5px,transparent 1.5px 25%)}
+.seg-n{display:block;margin-top:7px;font:500 10.5px/1.3 var(--f-mono);text-transform:uppercase;letter-spacing:.03em;color:var(--muted);overflow-wrap:anywhere}
+.seg.cur .seg-n{color:var(--ink)}
+.seg.done .seg-n::before{content:"✓ "}
+
+.attn{list-style:none;margin:0;padding:0;border:2px solid var(--bd);border-radius:18px;background:var(--surface);box-shadow:4px 4px 0 var(--sh);overflow:hidden}
+.attn li{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;padding:12px 14px;border-top:2px dashed var(--line)}
+.attn li:first-child{border-top:0}
+.attn .pill{align-self:start;margin-top:2px}
+.attn .t{overflow-wrap:anywhere;font-weight:700}
+.attn .w{grid-column:2;font-size:13px;color:var(--muted)}
+.empty-note{padding:16px;border:2px dashed var(--bd);border-radius:18px;background:var(--surface);color:var(--muted)}
+
+textarea,input[type=text],input[type=password],input[type=date]{background:var(--surface);border:2px solid var(--bd);border-radius:12px;padding:10px 12px;width:100%}
+textarea{resize:vertical;min-height:46px}
+.btn{display:inline-block;background:var(--surface);border:2px solid var(--bd);border-radius:12px;padding:9px 15px;font-weight:700;box-shadow:2px 2px 0 var(--sh);text-align:center;text-decoration:none;color:var(--ink)}
+.btn:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--sh)}
+.btn.primary{background:var(--sun);color:var(--on-sun)}
+.btn.danger{background:var(--crit-soft)}
+.btn[disabled]{opacity:.55}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.chip{background:var(--surface);border:2px solid var(--bd);border-radius:99px;padding:8px 14px;font-size:14px;font-weight:700;box-shadow:2px 2px 0 var(--sh)}
+.chip:active{transform:translate(2px,2px);box-shadow:0 0 0 var(--sh)}
+.chip[aria-pressed="true"]{background:var(--plum-soft)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+
+.phead{display:grid;gap:16px;margin-bottom:24px}
+.phead-top{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between}
+.phead-title{display:flex;align-items:center;gap:12px;min-width:0}
+.phead .pct{font-size:28px;padding:8px 16px}
+.draft{background:var(--warn-soft);border:2px dashed var(--bd);border-radius:14px;padding:12px 16px;font-size:14.5px;margin-bottom:20px;display:grid;gap:10px;justify-items:start}
+.phase{background:var(--surface);border:2px solid var(--bd);border-radius:18px;padding:16px;display:grid;gap:12px;min-width:0;box-shadow:4px 4px 0 var(--sh)}
+.phase.cur{box-shadow:6px 6px 0 var(--c)}
+.phase-h{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;justify-content:space-between}
+.tasks{list-style:none;margin:0;padding:0;display:grid}
+.task{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 12px;align-items:start;padding:10px 4px;border-top:2px dashed var(--line)}
+.task:first-child{border-top:0}
+.task label{overflow-wrap:anywhere;padding-top:1px;font-weight:600}
+.task.done label{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--tick);font-weight:500}
+.task .meta{grid-column:2;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.task input[type=date]{width:auto;padding:5px 8px;font:500 13px var(--f-mono);border-radius:10px;border-width:1.5px}
+.task input[type=date].late{border-color:var(--crit);color:var(--crit)}
+input[type=checkbox]{appearance:none;-webkit-appearance:none;width:26px;height:26px;margin:0;border:2px solid var(--bd);border-radius:8px;background:var(--surface);display:grid;place-content:center;flex:none}
+input[type=checkbox]:checked{background:var(--c,var(--sea))}
+input[type=checkbox]:checked::after{content:"";width:6px;height:12px;border:solid var(--on-sun);border-width:0 3px 3px 0;transform:rotate(45deg) translate(-1px,-1px)}
+input[type=checkbox].pop{animation:pop .35s ease}
+@keyframes pop{0%{transform:scale(.7)}60%{transform:scale(1.3) rotate(-6deg)}100%{transform:scale(1)}}
+.icon{background:none;border:2px solid transparent;border-radius:10px;padding:4px 8px;color:var(--muted);display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:700}
+.icon.on{color:var(--ink);background:var(--warn-soft);border-color:var(--bd)}
+.addrow{display:flex;gap:8px}
+.addrow input{flex:1;min-width:0}
+.form{background:var(--surface);border:2px solid var(--bd);border-radius:18px;box-shadow:4px 4px 0 var(--sh);padding:16px;display:grid;gap:10px;margin-bottom:20px}
+.form label{font-weight:700;font-size:14px}
+.notes{display:grid;gap:8px;margin-top:22px}
+
+/* sohbet */
+.msgs{display:grid;gap:12px;margin-bottom:14px}
+.msg{max-width:92%;border:2px solid var(--bd);border-radius:18px;padding:11px 14px;box-shadow:3px 3px 0 var(--sh);overflow-wrap:anywhere}
+.msg.user{justify-self:end;background:var(--sun);color:var(--on-sun)}
+.msg.ai{justify-self:start;background:var(--surface)}
+.msg.err{background:var(--crit-soft)}
+.msg p+p,.msg p+ul,.msg ul+p{margin-top:8px}
+.msg ul{margin:0;padding-left:20px;display:grid;gap:4px}
+.msg.user{white-space:pre-wrap}
+.chg{margin-top:12px;padding-top:10px;border-top:2px dashed var(--line);display:grid;gap:8px}
+.chg ul{margin:0;padding-left:18px;font-size:14px}
+.chat-form{display:grid;gap:8px;margin-top:14px}
+.hint{color:var(--muted)}
+
+.conf{position:fixed;width:8px;height:12px;border-radius:2px;pointer-events:none;z-index:30}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom,0px));background:var(--sun);color:var(--on-sun);border:2px solid var(--bd);box-shadow:3px 3px 0 var(--sh);padding:10px 18px;border-radius:14px;font-size:14.5px;font-weight:700;max-width:calc(100vw - 32px);z-index:20}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<nav class="bottom" id="bottom" aria-label="Ana gezinme"></nav>
+<div id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(() => {
+'use strict';
+const app = document.getElementById('app');
+const bottom = document.getElementById('bottom');
+const toastEl = document.getElementById('toast');
+const COLORS = ['sea', 'hazel', 'ulva', 'plum'];
+const KEY = 'pusula-v1';
+const DEFAULT_MODEL = 'gemini-3.8-flash';
+const OPS = ['add_project', 'add_phase', 'add_task', 'complete_task', 'set_key', 'set_due', 'append_note'];
+const LOGO = '<svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><circle class="face" cx="32" cy="32" r="28"/><g class="needle"><polygon class="n1" points="32,8 40,32 24,32"/><polygon class="n2" points="32,56 40,32 24,32"/></g><circle class="pin" cx="32" cy="32" r="3.5"/></svg>';
+
+let state = { projects: [], settings: { key: '', model: DEFAULT_MODEL }, chat: [] };
+let view = 'home';
+let showNew = false, newBusy = false, confirmDel = null, confirmWipe = false;
+let pendingFocus = null, popId = null, chatBusy = false, chatMode = 'ask', chatDraft = '', ctl = null;
+let showKey = false, testMsg = '', installEvt = null;
+
+/* ---------- yardımcılar ---------- */
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => Math.random().toString(36).slice(2, 9);
+const nowISO = () => new Date().toISOString();
+const todayISO = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+const dayDiff = (a, b) => Math.round((Date.parse(b + 'T00:00:00') - Date.parse(a + 'T00:00:00')) / 864e5);
+const validDate = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s);
+const fmtDate = (iso) => { if (!iso) return ''; const p = iso.split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }); };
+const initial = (p) => (p.title || '?').trim().charAt(0).toLocaleUpperCase('tr');
+const longDate = () => new Date().toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+function toast(m) { toastEl.textContent = m; toastEl.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => { toastEl.hidden = true; }, 4200); }
+
+/* ---------- veri ---------- */
+function norm(d) {
+  const p = {
+    id: d.id || 'p-' + uid(), title: String(d.title || 'Adsız proje'), subtitle: String(d.subtitle || ''),
+    color: COLORS.includes(d.color) ? d.color : 'sea', order: typeof d.order === 'number' ? d.order : 0,
+    notes: String(d.notes || ''), draft: !!d.draft, updatedAt: d.updatedAt || '', phases: []
+  };
+  (Array.isArray(d.phases) ? d.phases : []).forEach((ph) => {
+    p.phases.push({
+      id: ph.id || uid(), name: String(ph.name || 'Aşama'), goal: String(ph.goal || ''),
+      tasks: (Array.isArray(ph.tasks) ? ph.tasks : []).map((t) => ({ id: t.id || uid(), text: String(t.text || ''), done: !!t.done, due: validDate(t.due) ? t.due : '', key: !!t.key }))
+    });
+  });
+  return p;
+}
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    state.projects = (d.projects || []).map(norm);
+    state.settings = Object.assign({ key: '', model: DEFAULT_MODEL }, d.settings || {});
+    state.chat = Array.isArray(d.chat) ? d.chat : [];
+  } catch (e) { /* bozuk kayıt: boş başla */ }
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify({ projects: state.projects, settings: state.settings, chat: state.chat.slice(-30) })); }
+  catch (e) { toast('Kaydedilemedi. Telefonun depolama alanı dolu olabilir.'); }
+}
+const touch = (p) => { p.updatedAt = nowISO(); };
+const nextOrder = () => state.projects.reduce((m, p) => Math.max(m, p.order), 0) + 1;
+const findProject = (id) => state.projects.find((p) => p.id === id);
+function findTaskById(id) {
+  for (const p of state.projects) for (const ph of p.phases) for (const t of ph.tasks) if (t.id === id) return { p, ph, t };
+  return null;
+}
+
+/* ---------- hesaplar ---------- */
+const allTasks = (p) => p.phases.flatMap((ph) => ph.tasks);
+const prog = (p) => { const t = allTasks(p), d = t.filter((x) => x.done).length; return { done: d, total: t.length, pct: t.length ? Math.round(d / t.length * 100) : 0 }; };
+const phasePct = (ph) => ph.tasks.length ? ph.tasks.filter((t) => t.done).length / ph.tasks.length : 0;
+const phaseDone = (ph) => ph.tasks.length > 0 && ph.tasks.every((t) => t.done);
+const curIdx = (p) => p.phases.findIndex((ph) => !phaseDone(ph));
+function nextTask(p) {
+  const i = curIdx(p); if (i < 0) return null;
+  const ts = p.phases[i].tasks.filter((t) => !t.done); if (!ts.length) return null;
+  return ts.find((t) => t.key) || ts[0];
+}
+function stageText(p) {
+  const i = curIdx(p);
+  if (!p.phases.length) return 'Yol haritası boş';
+  if (i < 0) return 'Tüm aşamalar tamam';
+  return 'Aşama ' + (i + 1) + '/' + p.phases.length + ' · ' + p.phases[i].name;
+}
+function attention() {
+  const today = todayISO(), items = [];
+  state.projects.forEach((p) => {
+    const listed = {};
+    allTasks(p).forEach((t) => {
+      if (t.done) return;
+      if (t.due && t.due < today) { items.push({ sev: 0, kind: 'late', label: 'Gecikmiş', text: t.text, p, why: dayDiff(t.due, today) + ' gün gecikti · son tarih ' + fmtDate(t.due) }); listed[t.id] = 1; }
+      else if (t.key) { items.push({ sev: 1, kind: 'key', label: 'Karar', text: t.text, p, why: 'Karar bekliyor' + (t.due ? ' · son tarih ' + fmtDate(t.due) : '') }); listed[t.id] = 1; }
+      else if (t.due && dayDiff(today, t.due) <= 7) { const m = dayDiff(today, t.due); items.push({ sev: 2, kind: 'soon', label: 'Yakın', text: t.text, p, why: (m === 0 ? 'Bugün' : m + ' gün sonra') + ' · ' + fmtDate(t.due) }); listed[t.id] = 1; }
+    });
+    if (p.updatedAt && prog(p).pct < 100) {
+      const age = Math.floor((Date.now() - Date.parse(p.updatedAt)) / 864e5);
+      if (age >= 14) items.push({ sev: 3, kind: 'stale', label: 'Durgun', text: p.title + ' ' + age + ' gündür güncellenmedi', p, why: 'Bir görevi işaretle ya da yeni adım ekle' });
+    }
+    const nt = nextTask(p);
+    if (nt && !listed[nt.id]) items.push({ sev: 4, kind: 'next', label: 'Sırada', text: nt.text, p, why: 'Aşama: ' + p.phases[curIdx(p)].name });
+  });
+  return items.sort((a, b) => a.sev - b.sev);
+}
+function mdLite(t) {
+  let out = '', inList = false;
+  String(t).replace(/\*\*/g, '').replace(/^#+\s*/gm, '').split('\n').forEach((raw) => {
+    const m = raw.match(/^\s*[-•*]\s+(.*)$/);
+    if (m) { if (!inList) { out += '<ul>'; inList = true; } out += '<li>' + esc(m[1]) + '</li>'; }
+    else { if (inList) { out += '</ul>'; inList = false; } if (raw.trim()) out += '<p>' + esc(raw.trim()) + '</p>'; }
+  });
+  if (inList) out += '</ul>';
+  return out;
+}
+
+/* ---------- parçalar ---------- */
+function track(p, full) {
+  const idx = curIdx(p);
+  const segs = p.phases.map((ph, i) => {
+    const f = Math.round(phasePct(ph) * 100), st = phaseDone(ph) ? 'done' : (i === idx ? 'cur' : 'todo');
+    return '<div class="seg ' + st + '" style="--f:' + f + '%"><span class="bar"></span><span class="tick"></span>' + (full ? '<span class="seg-n">' + esc(ph.name) + '</span>' : '') + '</div>';
+  }).join('');
+  const pr = prog(p);
+  return '<div class="track" style="--c:var(--' + p.color + ');grid-template-columns:repeat(' + Math.max(p.phases.length, 1) + ',minmax(0,1fr))" role="img" aria-label="' + esc(p.title) + ': ' + pr.done + ' / ' + pr.total + ' görev tamam">' + segs + '</div>';
+}
+function badges(p) {
+  const today = todayISO(); let late = 0, key = 0;
+  allTasks(p).forEach((t) => { if (t.done) return; if (t.due && t.due < today) late++; if (t.key) key++; });
+  let h = '';
+  if (late) h += '<span class="pill late">' + late + ' gecikmiş</span>';
+  if (key) h += '<span class="pill key">' + key + ' karar bekliyor</span>';
+  if (!late && !key && prog(p).pct === 100) h += '<span class="pill ok">Tamamlandı</span>';
+  return h ? '<p class="badges">' + h + '</p>' : '';
+}
+const ICONS = {
+  home: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>',
+  chat: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/></svg>',
+  gear: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>'
+};
+function topHTML() {
+  if (view.startsWith('p:')) return '<header class="top"><button class="back" data-act="go" data-v="home">‹ Projeler</button><div class="today">' + esc(longDate()) + '</div></header>';
+  return '<header class="top"><div class="brand">' + LOGO + '<h1>Proje <span class="hl">Pusulası</span></h1></div><div class="today">' + esc(longDate()) + '</div></header>';
+}
+function navHTML() {
+  const cur = view.startsWith('p:') ? 'home' : view;
+  const b = (v, ic, label) => '<button data-act="go" data-v="' + v + '"' + (cur === v ? ' aria-current="page"' : '') + '>' + ICONS[ic] + '<span>' + label + '</span></button>';
+  return b('home', 'home', 'Projeler') + b('chat', 'chat', 'Gemini') + b('settings', 'gear', 'Ayarlar');
+}
+
+/* ---------- ekranlar ---------- */
+function newFormHTML() {
+  return '<form class="form" data-act="newp"><h2>Yeni proje</h2>' +
+    '<div><label for="np-title">Proje adı</label><input type="text" id="np-title" maxlength="80" required></div>' +
+    '<div><label for="np-desc">Kısaca ne yapılacak?</label><textarea id="np-desc" rows="3" maxlength="600" placeholder="Hedefi, elindeki kaynakları ve bildiğin kısıtları yaz."></textarea></div>' +
+    '<div class="row"><button type="submit" class="btn primary" data-mode="ai"' + (newBusy ? ' disabled' : '') + '>' + (newBusy ? 'Hazırlanıyor…' : 'Yol haritasını Gemini hazırlasın') + '</button>' +
+    '<button type="submit" class="btn" data-mode="empty"' + (newBusy ? ' disabled' : '') + '>Boş başlat</button><button type="button" class="btn" data-act="newtoggle">Vazgeç</button></div></form>';
+}
+function homeHTML() {
+  const P = state.projects; let tot = 0, done = 0, late = 0, key = 0; const today = todayISO();
+  P.forEach((p) => { const pr = prog(p); tot += pr.total; done += pr.done; allTasks(p).forEach((t) => { if (t.done) return; if (t.due && t.due < today) late++; if (t.key) key++; }); });
+  let h = '';
+  if (P.length) h += '<p class="stats"><span><b>' + P.length + '</b>proje</span><span><b>' + done + '/' + tot + '</b>görev tamam</span><span><b>' + key + '</b>karar bekliyor</span><span' + (late ? ' class="bad"' : '') + '><b>' + late + '</b>gecikmiş</span></p>';
+  if (showNew) h += newFormHTML();
+  if (!P.length) {
+    h += '<p class="empty-note">Henüz proje yok. "Yeni proje" ile başla ya da Ayarlar bölümünden projelerim.json dosyasını içe aktar.</p><div class="row" style="margin-top:14px"><button class="btn primary" data-act="newtoggle">+ Yeni proje</button></div>';
+    return h;
+  }
+  const items = attention().slice(0, 8);
+  h += '<div class="sect-h"><h2>Dikkat gerektirenler</h2><button class="chip" data-act="chatq" data-q="today">Gemini ne der?</button></div>';
+  h += items.length ? '<ul class="attn">' + items.map((it) => '<li><span class="pill ' + it.kind + '">' + it.label + '</span><span class="t">' + esc(it.text) + '</span><span class="w">' + esc(it.p.title) + ' · ' + esc(it.why) + '</span></li>').join('') + '</ul>' : '<p class="empty-note">Şu an bekleyen iş görünmüyor.</p>';
+  h += '<div class="sect-h"><h2>Projeler</h2><button class="chip" data-act="newtoggle">+ Yeni proje</button></div><div class="stack">';
+  P.slice().sort((a, b) => a.order - b.order).forEach((p) => {
+    const pr = prog(p), nt = nextTask(p);
+    h += '<article class="card" style="--c:var(--' + p.color + ')"><div class="card-h"><span class="ava" aria-hidden="true">' + esc(initial(p)) + '</span><h3><button class="link" data-act="go" data-v="p:' + esc(p.id) + '">' + esc(p.title) + '</button></h3><span class="pct">%' + pr.pct + '</span></div>' +
+      (p.subtitle ? '<p class="muted small">' + esc(p.subtitle) + '</p>' : '') + track(p, false) + '<p class="stage">' + esc(stageText(p)) + '</p>' +
+      (nt ? '<p class="next"><span class="lbl">Sıradaki</span>' + esc(nt.text) + '</p>' : '') + badges(p) + '</article>';
+  });
+  return h + '</div>';
+}
+function projectHTML(p) {
+  const pr = prog(p), idx = curIdx(p), today = todayISO();
+  let h = '<div class="phead" style="--c:var(--' + p.color + ')"><div class="phead-top"><div class="phead-title"><span class="ava big" aria-hidden="true">' + esc(initial(p)) + '</span><div><h2 style="font-size:clamp(23px,6vw,30px);line-height:1.1">' + esc(p.title) + '</h2>' + (p.subtitle ? '<p class="muted small" style="margin-top:4px">' + esc(p.subtitle) + '</p>' : '') + '</div></div><div class="pct">%' + pr.pct + '</div></div>' + track(p, true) + '<p class="stage">' + esc(stageText(p)) + ' · ' + pr.done + '/' + pr.total + ' görev</p></div>';
+  if (p.draft) h += '<div class="draft"><span>Bu yol haritası bir başlangıç taslağı. Görevleri kendi durumuna göre işaretle, sil ya da yenilerini ekle.</span><button class="btn" data-act="undraft" data-p="' + esc(p.id) + '">Taslak, onayladım</button></div>';
+  h += '<div class="stack" style="--c:var(--' + p.color + ')">';
+  p.phases.forEach((ph, i) => {
+    const st = phaseDone(ph) ? 'ok' : (i === idx ? 'soon' : ''), stl = phaseDone(ph) ? 'Tamamlandı' : (i === idx ? 'Sürüyor' : 'Sırada');
+    h += '<div class="phase' + (i === idx ? ' cur' : '') + '"><div class="phase-h"><h3>Aşama ' + (i + 1) + ' · ' + esc(ph.name) + '</h3><span class="pill ' + st + '">' + stl + '</span></div>' + (ph.goal ? '<p class="muted small">' + esc(ph.goal) + '</p>' : '') + '<ul class="tasks">';
+    ph.tasks.forEach((t) => {
+      const late = t.due && !t.done && t.due < today, cid = 'c-' + t.id;
+      h += '<li class="task' + (t.done ? ' done' : '') + '" data-p="' + esc(p.id) + '" data-ph="' + esc(ph.id) + '" data-t="' + esc(t.id) + '"><input type="checkbox" id="' + cid + '" data-act="toggle"' + (t.done ? ' checked' : '') + '><label for="' + cid + '">' + esc(t.text) + '</label><span class="meta">' +
+        '<button class="icon' + (t.key ? ' on' : '') + '" data-act="key" aria-pressed="' + (t.key ? 'true' : 'false') + '"><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M3 14V2M3 3h9l-2 3 2 3H3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>' + (t.key ? 'Karar bekliyor' : 'Karar') + '</button>' +
+        '<input type="date" data-act="due" value="' + esc(t.due) + '" aria-label="Son tarih"' + (late ? ' class="late"' : '') + '><button class="icon" data-act="deltask" aria-label="Görevi sil">×</button></span></li>';
+    });
+    h += '</ul><form class="addrow" data-act="addtask" data-p="' + esc(p.id) + '" data-ph="' + esc(ph.id) + '"><label class="sr" for="add-' + esc(ph.id) + '">Yeni görev</label><input type="text" id="add-' + esc(ph.id) + '" maxlength="200" placeholder="Bu aşamaya görev ekle"><button class="btn" type="submit">Ekle</button></form></div>';
+  });
+  h += '<form class="addrow" data-act="addphase" data-p="' + esc(p.id) + '"><label class="sr" for="addph">Yeni aşama</label><input type="text" id="addph" maxlength="80" placeholder="Yeni aşama adı"><button class="btn" type="submit">Aşama ekle</button></form></div>';
+  h += '<div class="notes"><h2>Notlar</h2><label class="sr" for="notes-in">Proje notları</label><textarea id="notes-in" rows="5" data-act="notes" data-p="' + esc(p.id) + '" placeholder="Bağımlılıklar, görüşme notları, sonraki karar noktaları">' + esc(p.notes) + '</textarea><p class="small muted">Not alanından çıkınca kaydedilir.</p></div>';
+  h += '<div class="row" style="margin-top:20px"><button class="btn primary" data-act="askproj" data-p="' + esc(p.id) + '">Bu proje için Gemini\'ye sor</button>' +
+    (confirmDel === p.id ? '<button class="btn danger" data-act="delproj" data-p="' + esc(p.id) + '">Evet, projeyi sil</button><button class="btn" data-act="delcancel">Vazgeç</button>' : '<button class="btn" data-act="delask" data-p="' + esc(p.id) + '">Projeyi sil</button>') + '</div>';
+  return h;
+}
+function describe(c) {
+  const pt = (id) => { const p = findProject(id); return p ? p.title : '(bilinmeyen proje)'; };
+  const tk = (id) => { const f = findTaskById(id); return f ? f.t.text : null; };
+  switch (c.op) {
+    case 'add_project': return 'Yeni proje: ' + esc(c.title) + ' (' + (Array.isArray(c.phases) ? c.phases.length : 0) + ' aşama)';
+    case 'add_phase': return esc(pt(c.project_id)) + ': yeni aşama "' + esc(c.name) + '"';
+    case 'add_task': return esc(pt(c.project_id)) + ': görev ekle "' + esc(c.text) + '"' + (c.key ? ' (karar bekliyor)' : '') + (validDate(c.due) ? ' · ' + fmtDate(c.due) : '');
+    case 'complete_task': return (tk(c.task_id) ? (c.done === false ? 'Tamamlanmadı yap: ' : 'Tamamlandı işaretle: ') + esc(tk(c.task_id)) : '(bulunamayan görev)');
+    case 'set_key': return (tk(c.task_id) ? (c.key === false ? 'Karar bayrağını kaldır: ' : 'Karar bekliyor işaretle: ') + esc(tk(c.task_id)) : '(bulunamayan görev)');
+    case 'set_due': return (tk(c.task_id) ? 'Son tarih ' + (validDate(c.due) ? fmtDate(c.due) : 'kaldır') + ': ' + esc(tk(c.task_id)) : '(bulunamayan görev)');
+    case 'append_note': return esc(pt(c.project_id)) + ': nota ekle';
+    default: return 'Güncelleme';
+  }
+}
+function chatHTML() {
+  let h = '<div class="msgs" id="msgs">';
+  if (!state.chat.length) h += '<div class="msg ai"><p>Merhaba. Projelerin hakkında konuşalım. "Bitirdim" dediğin işleri işaretlemeyi, yeni görev ve proje eklemeyi önerebilirim. Hiçbir şey sen onaylamadan değişmez.</p></div>';
+  state.chat.forEach((m, i) => {
+    if (m.r === 'user') { h += '<div class="msg user">' + esc(m.t) + '</div>'; return; }
+    h += '<div class="msg ai' + (m.err ? ' err' : '') + '">' + mdLite(m.t);
+    if (m.changes && m.changes.length) {
+      h += '<div class="chg"><span class="lbl">Önerilen güncellemeler</span><ul>' + m.changes.map((c) => '<li>' + describe(c) + '</li>').join('') + '</ul>';
+      if (m.st === 'pending') h += '<div class="row"><button class="btn primary" data-act="apply" data-i="' + i + '">Uygula</button><button class="btn" data-act="ignore" data-i="' + i + '">Yoksay</button></div>';
+      else h += '<p class="small muted">' + (m.st === 'applied' ? 'Uygulandı.' : 'Yoksayıldı.') + '</p>';
+      h += '</div>';
+    }
+    h += '</div>';
+  });
+  if (chatBusy) h += '<div class="msg ai"><p class="hint">Düşünüyor…</p><div class="row" style="margin-top:8px"><button class="btn" data-act="stop">Durdur</button></div></div>';
+  h += '</div><div class="chips"><button class="chip" data-act="chatq" data-q="today">Bugün ne yapmalıyım?</button><button class="chip" data-act="chatq" data-q="week">Haftalık plan</button><button class="chip" data-act="chatq" data-q="risks">Riskler</button><button class="chip" data-act="importmode" aria-pressed="' + (chatMode === 'import') + '">Başka sohbetten aktar</button></div>';
+  h += '<form class="chat-form" data-act="chatsend"><label class="sr" for="chat-in">Mesaj</label><textarea id="chat-in" rows="' + (chatMode === 'import' ? 6 : 2) + '" placeholder="' + (chatMode === 'import' ? 'Başka bir yapay zeka sohbetinden ya da notlarından kopyaladığın metni yapıştır.' : 'Örn. Pilot tesis bütçesini bitirdim, sıradaki işim ne?') + '">' + esc(chatDraft) + '</textarea><div class="row"><button class="btn primary" type="submit"' + (chatBusy ? ' disabled' : '') + '>' + (chatMode === 'import' ? 'Projeleri ayıkla' : 'Gönder') + '</button>' + (state.chat.length ? '<button class="btn" type="button" data-act="clearchat">Sohbeti temizle</button>' : '') + '</div></form>';
+  return h;
+}
+function settingsHTML() {
+  const s = state.settings;
+  let h = '<form class="form" data-act="keyform"><h2>Gemini bağlantısı</h2>' +
+    '<p class="small muted">Anahtarı <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a> sayfasından alırsın. Anahtar yalnızca bu telefonda saklanır ve sadece Gemini\'ye gönderilir.</p>' +
+    '<div><label for="set-key">API anahtarı</label><input type="' + (showKey ? 'text' : 'password') + '" id="set-key" autocomplete="off" autocapitalize="off" spellcheck="false" value="' + esc(s.key) + '"></div>' +
+    '<div><label for="set-model">Model</label><input type="text" id="set-model" autocapitalize="off" spellcheck="false" value="' + esc(s.model) + '"><p class="small muted" style="margin-top:4px">Varsayılan: ' + DEFAULT_MODEL + '. Model adı değişirse buradan güncelle.</p></div>' +
+    '<div class="row"><button class="btn primary" type="submit">Kaydet ve dene</button><button class="btn" type="button" data-act="keyshow">' + (showKey ? 'Gizle' : 'Göster') + '</button>' + (s.key ? '<button class="btn danger" type="button" data-act="keydel">Anahtarı sil</button>' : '') + '</div>' +
+    (testMsg ? '<p class="small" role="status">' + esc(testMsg) + '</p>' : '') +
+    '<p class="small muted">Ücretsiz katmanda Google, gönderdiğin metni ürünlerini geliştirmek için kullanabilir ve ekipleri okuyabilir. Ücretli katmanda bunu yapmadığını belirtiyor. İş fikirlerin gizliyse bunu göz önünde bulundur.</p></form>';
+  h += '<div class="form"><h2>Veri ve yedek</h2><p class="small muted">Projelerin yalnızca bu telefondaki tarayıcı deposunda durur. Düzenli yedek al; tarayıcı verisini silersen projeler gider.</p>' +
+    '<div class="row"><button class="btn" data-act="export">Yedeği indir</button><label class="btn" for="imp">Dosyadan içe aktar</label><input type="file" id="imp" class="sr" accept=".json,application/json"></div>' +
+    '<p class="small muted">İçe aktarırken aynı kimlikli projeler dosyadakiyle değiştirilir, diğerleri korunur.</p>' +
+    (confirmWipe ? '<div class="row"><button class="btn danger" data-act="wipego">Evet, hepsini sil</button><button class="btn" data-act="wipeno">Vazgeç</button></div>' : '<div class="row"><button class="btn" data-act="wipe">Tüm projeleri sil</button></div>') + '</div>';
+  h += '<div class="form"><h2>Telefona kur</h2>' + (installEvt ? '<button class="btn primary" data-act="install">Ana ekrana ekle</button>' : '') +
+    '<p class="small muted">Android Chrome: menüden "Uygulamayı yükle" ya da "Ana ekrana ekle". iPhone Safari: Paylaş düğmesi, sonra "Ana Ekrana Ekle".</p></div>';
+  return h;
+}
+
+function render() {
+  const a = document.activeElement; let keep = null;
+  if (a && a.id && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA') && a.type !== 'checkbox' && a.type !== 'file') keep = { id: a.id, v: a.value, s: a.selectionStart, e: a.selectionEnd };
+  let body;
+  if (view === 'home') body = homeHTML();
+  else if (view === 'chat') body = chatHTML();
+  else if (view === 'settings') body = settingsHTML();
+  else { const p = findProject(view.slice(2)); if (p) body = projectHTML(p); else { view = 'home'; body = homeHTML(); } }
+  app.innerHTML = topHTML() + body;
+  bottom.innerHTML = navHTML();
+  const target = pendingFocus || (keep && keep.id);
+  if (target) {
+    const el = document.getElementById(target);
+    if (el) {
+      if (keep && keep.id === target && !pendingFocus) el.value = keep.v;
+      el.focus();
+      if (keep && keep.id === target && !pendingFocus && el.setSelectionRange) { try { el.setSelectionRange(keep.s, keep.e); } catch (e) { /* alan seçimi desteklemiyor */ } }
+    }
+  }
+  pendingFocus = null;
+  if (popId) { const pe = document.getElementById(popId); if (pe) pe.classList.add('pop'); popId = null; }
+  if (view === 'chat') { const m = document.getElementById('msgs'); if (m && m.lastElementChild) m.lastElementChild.scrollIntoView({ block: 'end' }); }
+}
+
+/* ---------- konfeti ---------- */
+function confetti(x, y) {
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const cols = ['#FFD23F', '#0AA5BC', '#F28A1E', '#3FB653', '#9B5CF0', '#E5384F'];
+  for (let i = 0; i < 20; i++) {
+    const s = document.createElement('span');
+    s.className = 'conf'; s.style.left = x + 'px'; s.style.top = y + 'px'; s.style.background = cols[i % cols.length];
+    document.body.appendChild(s);
+    const ang = Math.random() * Math.PI * 2, dist = 50 + Math.random() * 90;
+    if (!s.animate) { s.remove(); continue; }
+    const a = s.animate([{ transform: 'translate(0,0) rotate(0deg)', opacity: 1 }, { transform: 'translate(' + Math.cos(ang) * dist + 'px,' + (Math.sin(ang) * dist + 50) + 'px) rotate(' + Math.round(Math.random() * 540) + 'deg)', opacity: 0 }], { duration: 700 + Math.random() * 350, easing: 'cubic-bezier(.2,.7,.3,1)' });
+    a.onfinish = () => s.remove();
+  }
+}
+
+/* ---------- Gemini ---------- */
+async function callGemini(contents, system, json, signal) {
+  const { key, model } = state.settings;
+  const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model || DEFAULT_MODEL) + ':generateContent', {
+    method: 'POST', signal,
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+    body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents, generationConfig: { temperature: 0.4, responseMimeType: json ? 'application/json' : 'text/plain' } })
+  });
+  let data = null; try { data = await res.json(); } catch (e) { /* gövde yok */ }
+  if (!res.ok) { const err = new Error((data && data.error && data.error.message) || ('HTTP ' + res.status)); err.status = res.status; throw err; }
+  const parts = data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts;
+  const text = (parts || []).filter((p) => !p.thought && typeof p.text === 'string').map((p) => p.text).join('');
+  if (!text.trim()) { const err = new Error('empty'); err.status = 'empty'; throw err; }
+  return text;
+}
+function errMsg(e) {
+  if (e && e.name === 'AbortError') return 'Durduruldu.';
+  const st = e && e.status;
+  if (st === 400 && /api key|API_KEY/i.test(e.message)) return 'API anahtarı geçersiz görünüyor. Ayarlar bölümünden kontrol et.';
+  if (st === 400) return 'İstek reddedildi: ' + e.message;
+  if (st === 401 || st === 403) return 'Anahtarın bu isteğe izin vermiyor ya da bulunduğun bölgede kullanılamıyor.';
+  if (st === 404) return 'Model bulunamadı. Ayarlar bölümünden model adını kontrol et.';
+  if (st === 429) return 'Kullanım sınırına ulaşıldı. Biraz bekleyip tekrar dene.';
+  if (st === 'empty') return 'Gemini bu isteğe yanıt vermedi. Soruyu değiştirip tekrar dene.';
+  if (typeof st === 'number' && st >= 500) return 'Gemini şu an yanıt vermiyor. Biraz sonra tekrar dene.';
+  return 'Bağlantı kurulamadı. İnternetini kontrol et.';
+}
+function stateForAI() {
+  return state.projects.map((p) => ({ id: p.id, proje: p.title, aciklama: p.subtitle, ilerleme: '%' + prog(p).pct, not: p.notes, asamalar: p.phases.map((ph) => ({ id: ph.id, ad: ph.name, hedef: ph.goal, gorevler: ph.tasks.map((t) => ({ id: t.id, metin: t.text, bitti: t.done, son_tarih: t.due || null, karar_bekliyor: t.key })) })) }));
+}
+function buildSystem() {
+  return 'Sen, kullanıcının kişisel proje takip uygulamasındaki asistansın. Türkçe, sade ve net yaz.\n' +
+    'Bugünün tarihi: ' + longDate() + ' (' + todayISO() + ').\n' +
+    'Kullanıcının projeleri (JSON; değişikliklerde id alanlarını kullan):\n' + JSON.stringify(stateForAI()) + '\n\n' +
+    'Yanıt kuralları:\n' +
+    '- Yalnızca tek bir JSON nesnesi döndür: {"reply":"...","changes":[...]}\n' +
+    '- "reply": kullanıcıya kısa ve net yanıt (en fazla 180 kelime; başlık, tablo ve kalın yazı yok; gerekirse "- " ile madde).\n' +
+    '- "changes": uygulamada yapılmasını önerdiğin güncellemeler; yoksa boş dizi. Yalnızca kullanıcının açıkça söylediği ya da verdiği metinde bulunan bilgilere dayan. Tarih, tutar ya da şart uydurma. Bir görevi yalnızca kullanıcı bittiğini söylediyse tamamlandı yap.\n' +
+    '- Mevcut bir projeyle eşleşen bilgi için yeni proje açma; mevcut projeyi güncelle.\n' +
+    '- İşlemler:\n' +
+    '  {"op":"add_project","title":"","subtitle":"","phases":[{"name":"","goal":"","tasks":[{"text":"","done":false,"key":false}]}]}\n' +
+    '  {"op":"add_phase","project_id":"","name":"","goal":"","tasks":[{"text":"","done":false,"key":false}]}\n' +
+    '  {"op":"add_task","project_id":"","phase_id":"","text":"","key":false,"due":"YYYY-MM-DD"}\n' +
+    '  {"op":"complete_task","task_id":"","done":true}\n' +
+    '  {"op":"set_key","task_id":"","key":true}   (karar bekliyor bayrağı)\n' +
+    '  {"op":"set_due","task_id":"","due":"YYYY-MM-DD"}\n' +
+    '  {"op":"append_note","project_id":"","note":""}';
+}
+const PRESETS = {
+  today: 'Bugün ve bu hafta için en önemli 3 işi sırala. Gecikmiş, karar bekleyen ve yakın tarihli işleri öne al. Her biri için kısa bir neden ve ilk küçük adımı yaz. Değişiklik önerme.',
+  week: 'Önümüzdeki 7 gün için öncelik sırasıyla kısa bir plan yaz; "şunu yapmayı unutma" tarzında hatırlatmalar olsun. Değişiklik önerme.',
+  risks: 'Projeler arasındaki bağımlılıkları ve tıkanma risklerini çıkar (bir işin başka bir işi beklemesi gibi). Her risk için bir önlem öner. Değişiklik önerme.'
+};
+const IMPORT_PROMPT = 'Aşağıdaki metin başka bir yapay zeka sohbetinden ya da notlardan geliyor. İçindeki projeleri ayıkla: mevcut projelerle eşleşenlerin yeni bilgilerini (tamamlanan işler, yeni görevler, kararlar) güncelleme olarak öner; olmayanları add_project ile yeni proje olarak öner. Açık soruları karar bekleyen (key:true) görev yap. Metinde olmayan bilgi ekleme.\n\nMetin:\n\n';
+function parseOut(raw) {
+  const t = String(raw).trim(); let obj = null;
+  try { obj = JSON.parse(t); } catch (e) {
+    const m = t.replace(/^```(?:json)?/i, '').replace(/```$/, ''); const i = m.indexOf('{'), j = m.lastIndexOf('}');
+    if (i >= 0 && j > i) { try { obj = JSON.parse(m.slice(i, j + 1)); } catch (e2) { /* ham metne düş */ } }
+  }
+  if (!obj || typeof obj !== 'object') return { reply: t, changes: [] };
+  const changes = (Array.isArray(obj.changes) ? obj.changes : []).filter((c) => c && typeof c === 'object' && OPS.includes(c.op));
+  return { reply: String(obj.reply || '').trim() || 'Tamam.', changes };
+}
+async function sendChat(text, mode) {
+  if (!state.settings.key) { toast('Önce Ayarlar bölümüne Gemini API anahtarını gir.'); view = 'settings'; render(); return; }
+  if (chatBusy || !text.trim()) return;
+  const shown = mode === 'import' ? '[Başka sohbetten aktarım] ' + text.slice(0, 500) + (text.length > 500 ? '…' : '') : text;
+  const hist = state.chat.slice(-10).map((m) => ({ role: m.r === 'user' ? 'user' : 'model', parts: [{ text: m.t }] }));
+  while (hist.length && hist[0].role !== 'user') hist.shift();
+  const payload = (mode === 'import' ? IMPORT_PROMPT : '') + text;
+  const contents = [];
+  hist.concat([{ role: 'user', parts: [{ text: payload }] }]).forEach((c) => {
+    const last = contents[contents.length - 1];
+    if (last && last.role === c.role) last.parts[0].text += '\n\n' + c.parts[0].text; else contents.push({ role: c.role, parts: [{ text: c.parts[0].text }] });
+  });
+  state.chat.push({ r: 'user', t: shown }); chatBusy = true; chatDraft = ''; chatMode = 'ask'; save(); render();
+  ctl = new AbortController();
+  try {
+    const out = parseOut(await callGemini(contents, buildSystem(), true, ctl.signal));
+    state.chat.push({ r: 'ai', t: out.reply, changes: out.changes, st: out.changes.length ? 'pending' : 'none' });
+  } catch (e) {
+    if (e && e.name === 'AbortError') state.chat.push({ r: 'ai', t: 'Durduruldu.', changes: [], st: 'none' });
+    else state.chat.push({ r: 'ai', t: errMsg(e), changes: [], st: 'none', err: true });
+  }
+  chatBusy = false; ctl = null; save(); render();
+}
+
+/* ---------- güncellemeleri uygula ---------- */
+const mkTask = (x) => (typeof x === 'string')
+  ? { id: uid(), text: x.slice(0, 200), done: false, due: '', key: false }
+  : { id: uid(), text: String(x.text || '').slice(0, 200), done: !!x.done, due: validDate(x.due) ? x.due : '', key: !!x.key };
+const buildPhases = (arr) => (Array.isArray(arr) ? arr : []).slice(0, 8).map((ph) => ({
+  id: uid(), name: String(ph.name || 'Aşama').slice(0, 80), goal: String(ph.goal || '').slice(0, 200),
+  tasks: (Array.isArray(ph.tasks) ? ph.tasks : []).slice(0, 10).filter((t) => t && (typeof t === 'string' || t.text)).map(mkTask)
+}));
+function applyOne(c) {
+  switch (c.op) {
+    case 'add_project': {
+      if (!c.title) return false;
+      state.projects.push(norm({ id: 'p-' + uid(), title: String(c.title).slice(0, 80), subtitle: String(c.subtitle || '').slice(0, 200), color: COLORS[state.projects.length % COLORS.length], order: nextOrder(), draft: true, updatedAt: nowISO(), phases: buildPhases(c.phases) }));
+      return true;
+    }
+    case 'add_phase': {
+      const p = findProject(c.project_id); if (!p || !c.name) return false;
+      p.phases.push(buildPhases([{ name: c.name, goal: c.goal, tasks: c.tasks }])[0]); touch(p); return true;
+    }
+    case 'add_task': {
+      const p = findProject(c.project_id); if (!p || !c.text) return false;
+      const ph = p.phases.find((x) => x.id === c.phase_id) || p.phases[curIdx(p)] || p.phases[0]; if (!ph) return false;
+      ph.tasks.push(mkTask(c)); touch(p); return true;
+    }
+    case 'complete_task': { const f = findTaskById(c.task_id); if (!f) return false; f.t.done = c.done !== false; touch(f.p); return true; }
+    case 'set_key': { const f = findTaskById(c.task_id); if (!f) return false; f.t.key = c.key !== false; touch(f.p); return true; }
+    case 'set_due': { const f = findTaskById(c.task_id); if (!f) return false; f.t.due = validDate(c.due) ? c.due : ''; touch(f.p); return true; }
+    case 'append_note': {
+      const p = findProject(c.project_id); if (!p || !c.note) return false;
+      p.notes = (p.notes ? p.notes + '\n' : '') + String(c.note).slice(0, 500); touch(p); return true;
+    }
+    default: return false;
+  }
+}
+function applyChanges(changes) {
+  let ok = 0, skip = 0;
+  changes.forEach((c) => { try { if (applyOne(c)) ok++; else skip++; } catch (e) { skip++; } });
+  save(); render();
+  toast(ok + ' güncelleme uygulandı' + (skip ? ', ' + skip + ' atlandı' : '') + '.');
+}
+async function createProject(title, desc, useAI) {
+  const p = norm({ id: 'p-' + uid(), title, subtitle: '', color: COLORS[state.projects.length % COLORS.length], order: nextOrder(), notes: '', draft: false, updatedAt: nowISO(), phases: [] });
+  if (useAI) {
+    if (!state.settings.key) { toast('Önce Ayarlar bölümüne Gemini API anahtarını gir.'); return; }
+    newBusy = true; render();
+    try {
+      const prompt = 'Kullanıcı yeni bir proje başlatıyor. Proje adı: "' + title + '". Açıklama: "' + desc + '".\nTürkçe bir yol haritası çıkar: 3 ila 5 aşama, her aşamada 2 ila 5 somut görev. Tarih, tutar ya da kullanıcının söylemediği bir gerçek uydurma.\nYalnızca şu şekilde JSON döndür: {"subtitle":"tek cümlelik özet","phases":[{"name":"aşama adı","goal":"aşamanın hedefi","tasks":["görev","görev"]}]}';
+      const out = JSON.parse(await callGemini([{ role: 'user', parts: [{ text: prompt }] }], 'Sen bir proje planlama asistanısın. Türkçe yaz.', true));
+      if (out && Array.isArray(out.phases)) { p.subtitle = String(out.subtitle || '').slice(0, 200); p.draft = true; p.phases = buildPhases(out.phases); }
+    } catch (e) { toast('Gemini yol haritasını hazırlayamadı: ' + errMsg(e) + ' Proje boş yol haritasıyla oluşturuldu.'); }
+    newBusy = false;
+  }
+  state.projects.push(p); showNew = false; view = 'p:' + p.id; save(); render(); window.scrollTo(0, 0);
+}
+
+/* ---------- yedek ---------- */
+function exportData() {
+  const blob = new Blob([JSON.stringify({ app: 'proje-pusulasi', version: 1, projects: state.projects }, null, 1)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob), a = document.createElement('a');
+  a.href = url; a.download = 'projelerim-' + todayISO() + '.json'; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+function importText(text) {
+  let d; try { d = JSON.parse(text); } catch (e) { toast('Dosya okunamadı. Geçerli bir JSON dosyası seç.'); return; }
+  const list = Array.isArray(d) ? d : (d && Array.isArray(d.projects) ? d.projects : null);
+  if (!list) { toast('Dosyada proje listesi bulunamadı.'); return; }
+  let n = 0;
+  list.forEach((raw) => {
+    if (!raw || typeof raw !== 'object' || !raw.title) return;
+    const p = norm(raw); const i = state.projects.findIndex((x) => x.id === p.id);
+    if (i >= 0) state.projects[i] = p; else state.projects.push(p);
+    n++;
+  });
+  save(); render(); toast(n + ' proje içe aktarıldı.');
+}
+
+/* ---------- olaylar ---------- */
+function mutate(pid, fn) { const p = findProject(pid); if (!p) return; fn(p); touch(p); save(); render(); }
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-act]');
+  if (!b || ['FORM', 'INPUT', 'TEXTAREA'].includes(b.tagName)) return;
+  const act = b.dataset.act, li = b.closest('.task');
+  switch (act) {
+    case 'go': view = b.dataset.v; showNew = false; confirmDel = null; confirmWipe = false; render(); window.scrollTo(0, 0); break;
+    case 'newtoggle': view = view.startsWith('p:') ? 'home' : view; if (view !== 'home') view = 'home'; showNew = !showNew; render(); if (showNew) { const t = document.getElementById('np-title'); if (t) t.focus(); } break;
+    case 'chatq': if (!state.settings.key) { toast('Önce Ayarlar bölümüne Gemini API anahtarını gir.'); view = 'settings'; render(); break; } view = 'chat'; render(); sendChat(PRESETS[b.dataset.q], 'ask'); break;
+    case 'importmode': chatMode = chatMode === 'import' ? 'ask' : 'import'; { const ta = document.getElementById('chat-in'); if (ta) chatDraft = ta.value; } pendingFocus = 'chat-in'; render(); break;
+    case 'askproj': { const p = findProject(b.dataset.p); chatDraft = p ? '"' + p.title + '" projesini değerlendir ve sıradaki adımları öner.' : ''; view = 'chat'; pendingFocus = 'chat-in'; render(); break; }
+    case 'apply': { const m = state.chat[Number(b.dataset.i)]; if (m && m.st === 'pending') { m.st = 'applied'; applyChanges(m.changes); } break; }
+    case 'ignore': { const m = state.chat[Number(b.dataset.i)]; if (m) { m.st = 'ignored'; save(); render(); } break; }
+    case 'stop': if (ctl) ctl.abort(); break;
+    case 'clearchat': state.chat = []; save(); render(); break;
+    case 'key': if (li) mutate(li.dataset.p, (p) => { const f = p.phases.find((x) => x.id === li.dataset.ph); const t = f && f.tasks.find((x) => x.id === li.dataset.t); if (t) t.key = !t.key; }); break;
+    case 'deltask': if (li) mutate(li.dataset.p, (p) => { const f = p.phases.find((x) => x.id === li.dataset.ph); if (f) f.tasks = f.tasks.filter((t) => t.id !== li.dataset.t); }); break;
+    case 'undraft': mutate(b.dataset.p, (p) => { p.draft = false; }); break;
+    case 'delask': confirmDel = b.dataset.p; render(); break;
+    case 'delcancel': confirmDel = null; render(); break;
+    case 'delproj': state.projects = state.projects.filter((p) => p.id !== b.dataset.p); confirmDel = null; view = 'home'; save(); render(); break;
+    case 'keyshow': { const k = document.getElementById('set-key'), m = document.getElementById('set-model'); if (k) state.settings.key = k.value.trim(); if (m) state.settings.model = m.value.trim() || DEFAULT_MODEL; showKey = !showKey; render(); break; }
+    case 'keydel': state.settings.key = ''; testMsg = ''; save(); render(); break;
+    case 'export': exportData(); break;
+    case 'wipe': confirmWipe = true; render(); break;
+    case 'wipeno': confirmWipe = false; render(); break;
+    case 'wipego': state.projects = []; state.chat = []; confirmWipe = false; save(); render(); toast('Tüm projeler silindi.'); break;
+    case 'install': if (installEvt) { installEvt.prompt(); installEvt = null; render(); } break;
+    default: break;
+  }
+});
+document.addEventListener('change', (e) => {
+  const el = e.target, act = el.dataset && el.dataset.act, li = el.closest && el.closest('.task');
+  if (act === 'toggle' && li) {
+    const rc = el.getBoundingClientRect(); let was = false, now = false, projDone = false;
+    if (el.checked) popId = 'c-' + li.dataset.t;
+    mutate(li.dataset.p, (p) => {
+      const ph = p.phases.find((x) => x.id === li.dataset.ph); const t = ph && ph.tasks.find((x) => x.id === li.dataset.t); if (!t) return;
+      was = phaseDone(ph); t.done = el.checked; now = phaseDone(ph); projDone = prog(p).pct === 100;
+    });
+    if (el.checked && !was && now) { confetti(rc.left + 12, rc.top + 12); toast(projDone ? 'Proje tamamlandı. Tebrikler!' : 'Aşama tamam! Bir adım daha yaklaştın.'); }
+  } else if (act === 'due' && li) {
+    mutate(li.dataset.p, (p) => { const ph = p.phases.find((x) => x.id === li.dataset.ph); const t = ph && ph.tasks.find((x) => x.id === li.dataset.t); if (t) t.due = validDate(el.value) ? el.value : ''; });
+  } else if (act === 'notes') {
+    const p = findProject(el.dataset.p); if (p) { p.notes = el.value; touch(p); save(); }
+  } else if (el.id === 'imp' && el.files && el.files[0]) {
+    const r = new FileReader(); r.onload = () => importText(String(r.result)); r.onerror = () => toast('Dosya okunamadı.'); r.readAsText(el.files[0]); el.value = '';
+  }
+});
+document.addEventListener('submit', async (e) => {
+  const f = e.target, act = f.dataset && f.dataset.act; if (!act) return; e.preventDefault();
+  if (act === 'addtask') {
+    const inp = f.querySelector('input'), v = inp.value.trim(); if (!v) return; const phid = f.dataset.ph;
+    mutate(f.dataset.p, (p) => { const ph = p.phases.find((x) => x.id === phid); if (ph) ph.tasks.push(mkTask(v)); });
+    pendingFocus = 'add-' + phid; render();
+  } else if (act === 'addphase') {
+    const n = f.querySelector('input').value.trim(); if (!n) return;
+    mutate(f.dataset.p, (p) => { p.phases.push({ id: uid(), name: n.slice(0, 80), goal: '', tasks: [] }); });
+  } else if (act === 'chatsend') {
+    const ta = f.querySelector('textarea'), q = ta.value.trim(); if (!q) return; sendChat(q, chatMode);
+  } else if (act === 'newp') {
+    if (newBusy) return;
+    const title = document.getElementById('np-title').value.trim(), desc = document.getElementById('np-desc').value.trim(); if (!title) return;
+    createProject(title, desc, e.submitter && e.submitter.dataset.mode === 'ai');
+  } else if (act === 'keyform') {
+    state.settings.key = document.getElementById('set-key').value.trim();
+    state.settings.model = document.getElementById('set-model').value.trim() || DEFAULT_MODEL; save();
+    if (!state.settings.key) { testMsg = 'Önce anahtarı gir.'; render(); return; }
+    testMsg = 'Deneniyor…'; render();
+    try { await callGemini([{ role: 'user', parts: [{ text: 'Tek kelimeyle "tamam" yaz.' }] }], 'Türkçe yanıt ver.', false); testMsg = 'Bağlantı çalışıyor.'; }
+    catch (err) { testMsg = errMsg(err); }
+    render();
+  }
+});
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEvt = e; if (view === 'settings') render(); });
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('./sw.js').catch(() => { /* çevrimdışı önbellek olmadan da çalışır */ });
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => { /* gerekli değil */ });
+
+load();
+render();
+})();
+</script>
+</body>
+</html>
