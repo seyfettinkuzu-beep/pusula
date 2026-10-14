@@ -30,7 +30,7 @@
   --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
 }
 @media (prefers-color-scheme: dark){
-  :root{
+  :root:not([data-theme="light"]){
     color-scheme:dark;
     --bg:#15133F; --dots:#24215F; --surface:#201D58; --ink:#F2F0FF; --muted:#ABA9DA;
     --bd:#8E88FF; --sh:#0A0830; --line:#37337F; --seg:#2E2A75; --tick:#6C67C9;
@@ -40,6 +40,24 @@
     --crit:#FF8A9B; --crit-soft:#5A1E2C; --warn:#FFD66B; --warn-soft:#4F3C0A;
   }
 }
+:root[data-theme="dark"]{
+    color-scheme:dark;
+    --bg:#15133F; --dots:#24215F; --surface:#201D58; --ink:#F2F0FF; --muted:#ABA9DA;
+    --bd:#8E88FF; --sh:#0A0830; --line:#37337F; --seg:#2E2A75; --tick:#6C67C9;
+    --sea:#3ED6EA; --sea-soft:#0F4A63; --hazel:#FFA94D; --hazel-soft:#5A3410;
+    --ulva:#6BE07F; --ulva-soft:#1D4A2A; --plum:#C29BFF; --plum-soft:#412A7A;
+    --sun:#FFD84D; --mark:#5E4B00;
+    --crit:#FF8A9B; --crit-soft:#5A1E2C; --warn:#FFD66B; --warn-soft:#4F3C0A;
+}
+html[data-anim="off"] *,html[data-anim="off"] *::before,html[data-anim="off"] *::after{animation:none!important;transition:none!important}
+html[data-dots="off"] body{background-image:none}
+html[data-shadow="off"] .card,html[data-shadow="off"] .btn,html[data-shadow="off"] .ava,html[data-shadow="off"] .form{box-shadow:none!important}
+body{zoom:var(--zoom,1)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:7px;background:var(--surface);border:2px solid var(--bd);border-radius:99px;padding:7px 13px;font-weight:700;font-size:14px;box-shadow:2px 2px 0 var(--sh)}
+.chip[aria-pressed="true"]{background:var(--sun);color:var(--on-sun);transform:translate(1px,1px);box-shadow:1px 1px 0 var(--sh)}
+.sw{display:inline-flex;gap:2px}.sw i{width:11px;height:11px;border-radius:50%;border:1.5px solid var(--bd);display:block}
+.lk{display:grid;gap:7px}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;background-color:var(--bg);background-image:radial-gradient(var(--dots) 1.6px,transparent 1.8px);background-size:24px 24px;
@@ -203,7 +221,8 @@ const DEFAULT_MODEL = 'gemini-3.8-flash';
 const OPS = ['add_project', 'add_phase', 'add_task', 'complete_task', 'set_key', 'set_due', 'append_note'];
 const LOGO = '<svg class="logo" viewBox="0 0 64 64" aria-hidden="true"><circle class="face" cx="32" cy="32" r="28"/><g class="needle"><polygon class="n1" points="32,8 40,32 24,32"/><polygon class="n2" points="32,56 40,32 24,32"/></g><circle class="pin" cx="32" cy="32" r="3.5"/></svg>';
 
-let state = { projects: [], settings: { key: '', model: DEFAULT_MODEL }, chat: [] };
+const DEF_LOOK = { mode: 'auto', palette: 'okyanus', font: 'eglenceli', size: 'm', anim: true, dots: true, shadow: true };
+let state = { projects: [], settings: { key: '', model: DEFAULT_MODEL, look: Object.assign({}, DEF_LOOK) }, chat: [] };
 let view = 'home';
 let showNew = false, newBusy = false, confirmDel = null, confirmWipe = false;
 let pendingFocus = null, popId = null, chatBusy = false, chatMode = 'ask', chatDraft = '', ctl = null;
@@ -221,6 +240,48 @@ const initial = (p) => (p.title || '?').trim().charAt(0).toLocaleUpperCase('tr')
 const longDate = () => new Date().toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
 function toast(m) { toastEl.textContent = m; toastEl.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => { toastEl.hidden = true; }, 4200); }
+
+/* ---------- görünüm ---------- */
+const PALETTES = {
+  okyanus: { n: 'Okyanus', sw: ['#0AA5BC', '#F28A1E', '#3FB653', '#9B5CF0'] },
+  seker: { n: 'Şeker',
+    l: { bg: '#FFE9F3', dots: '#F9C4DC', ink: '#3D1237', muted: '#7A4A6F', line: '#F0CDE0', seg: '#F8DCEB', sea: '#E8409A', 'sea-soft': '#FFD0E7', hazel: '#FF8A3D', 'hazel-soft': '#FFE0CB', ulva: '#1FB58A', 'ulva-soft': '#CFF5E7', plum: '#8A5CF0', 'plum-soft': '#E8DCFF' },
+    d: { bg: '#2A0F2E', dots: '#401A46', surface: '#3A1741', ink: '#FFEAF6', muted: '#E0A9CD', bd: '#FF8CC8', sh: '#14051A', line: '#5E2A66', seg: '#4D2056', sea: '#FF7AC0', 'sea-soft': '#6B2257', hazel: '#FFA45E', 'hazel-soft': '#5E3216', ulva: '#5FE0B5', 'ulva-soft': '#1B4A3C', plum: '#C29BFF', 'plum-soft': '#432A7A' },
+    sw: ['#E8409A', '#FF8A3D', '#1FB58A', '#8A5CF0'] },
+  orman: { n: 'Orman',
+    l: { bg: '#EAF6E4', dots: '#C5E3B8', ink: '#16342A', muted: '#4B6E5C', line: '#CFE5C6', seg: '#DCEED3', sea: '#1E9A6B', 'sea-soft': '#CFF1DF', hazel: '#D98A1E', 'hazel-soft': '#FBE6C2', ulva: '#5DB52E', 'ulva-soft': '#DDF3C9', plum: '#7A5AC8', 'plum-soft': '#E4DAFA' },
+    d: { bg: '#0F2318', dots: '#1A3A28', surface: '#17301F', ink: '#EAFBEF', muted: '#9FCBB0', bd: '#6FD39A', sh: '#06130C', line: '#2A5A3C', seg: '#214A31', sea: '#4FE0A8', 'sea-soft': '#145038', hazel: '#F5B14D', 'hazel-soft': '#58401A', ulva: '#9BE56B', 'ulva-soft': '#2B4D17', plum: '#B9A0F5', 'plum-soft': '#3C2D6B' },
+    sw: ['#1E9A6B', '#D98A1E', '#5DB52E', '#7A5AC8'] },
+  gunbatimi: { n: 'Gün batımı',
+    l: { bg: '#FFF0DD', dots: '#FAD3A4', ink: '#43192A', muted: '#80503F', line: '#F3D9B8', seg: '#FBE5C8', sea: '#E8502A', 'sea-soft': '#FFD9CC', hazel: '#F2A71E', 'hazel-soft': '#FFEBBE', ulva: '#3FA66A', 'ulva-soft': '#D3F0DF', plum: '#C2418F', 'plum-soft': '#F9D5EA' },
+    d: { bg: '#2A1410', dots: '#40211A', surface: '#38201B', ink: '#FFF0E2', muted: '#E3B59B', bd: '#FF9A6B', sh: '#140806', line: '#5C3328', seg: '#4A2A22', sea: '#FF7A55', 'sea-soft': '#6B2A1C', hazel: '#FFC24D', 'hazel-soft': '#5E4310', ulva: '#6BDB9B', 'ulva-soft': '#1B4A32', plum: '#F28BC6', 'plum-soft': '#5A2144' },
+    sw: ['#E8502A', '#F2A71E', '#3FA66A', '#C2418F'] },
+  sade: { n: 'Sade',
+    l: { bg: '#F3F3F1', dots: '#DCDCD8', ink: '#1E1E1E', muted: '#5E5E5E', line: '#D9D9D5', seg: '#E6E6E2', sea: '#2F6F8F', 'sea-soft': '#D8E7EF', hazel: '#A8661F', 'hazel-soft': '#F0E0CC', ulva: '#3E7D4E', 'ulva-soft': '#DCEBDF', plum: '#6E5A9E', 'plum-soft': '#E4DEF0' },
+    d: { bg: '#161616', dots: '#232323', surface: '#212121', ink: '#F2F2F2', muted: '#AFAFAF', bd: '#9A9A9A', sh: '#000000', line: '#3A3A3A', seg: '#2E2E2E', sea: '#6FB6D6', 'sea-soft': '#1F3B4A', hazel: '#E0A366', 'hazel-soft': '#4A3419', ulva: '#7FCB92', 'ulva-soft': '#1E3E27', plum: '#B3A0E0', 'plum-soft': '#38305A' },
+    sw: ['#2F6F8F', '#A8661F', '#3E7D4E', '#6E5A9E'] }
+};
+const FONTS = {
+  eglenceli: { n: 'Eğlenceli', d: '"Fredoka","Trebuchet MS",system-ui,sans-serif', b: '"Nunito","Segoe UI",system-ui,sans-serif' },
+  duz: { n: 'Düz', d: 'system-ui,-apple-system,"Segoe UI",Roboto,sans-serif', b: 'system-ui,-apple-system,"Segoe UI",Roboto,sans-serif' },
+  kitap: { n: 'Kitap', d: 'Georgia,"Times New Roman",serif', b: 'Georgia,"Times New Roman",serif' }
+};
+const SIZES = { s: ['Küçük', 0.92], m: ['Normal', 1], l: ['Büyük', 1.1], xl: ['Çok büyük', 1.2] };
+const MODES = { auto: 'Telefona uysun', light: 'Açık', dark: 'Koyu' };
+const PAL_VARS = ['bg', 'dots', 'surface', 'ink', 'muted', 'bd', 'sh', 'line', 'seg', 'sea', 'sea-soft', 'hazel', 'hazel-soft', 'ulva', 'ulva-soft', 'plum', 'plum-soft'];
+const isDark = () => { const l = state.settings.look; return l.mode === 'dark' || (l.mode === 'auto' && !!(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)); };
+function applyLook() {
+  const l = state.settings.look, r = document.documentElement, dark = isDark();
+  if (l.mode === 'auto') r.removeAttribute('data-theme'); else r.setAttribute('data-theme', l.mode);
+  r.setAttribute('data-anim', l.anim ? 'on' : 'off'); r.setAttribute('data-dots', l.dots ? 'on' : 'off'); r.setAttribute('data-shadow', l.shadow ? 'on' : 'off');
+  PAL_VARS.forEach((v) => r.style.removeProperty('--' + v));
+  const pal = PALETTES[l.palette] || PALETTES.okyanus, set = pal && (dark ? pal.d : pal.l);
+  if (set) { Object.keys(set).forEach((k) => r.style.setProperty('--' + k, set[k])); if (!dark) { r.style.setProperty('--bd', set.ink); r.style.setProperty('--sh', set.ink); } }
+  const f = FONTS[l.font] || FONTS.eglenceli; r.style.setProperty('--f-display', f.d); r.style.setProperty('--f-body', f.b);
+  const z = (SIZES[l.size] || SIZES.m)[1]; r.style.setProperty('--zoom', String(z)); document.body && (document.body.style.zoom = z === 1 ? '' : String(z));
+  const tc = document.querySelector('meta[name="theme-color"]'); if (tc) tc.setAttribute('content', (set && set.bg) ? (dark ? set.bg : set.ink) : (dark ? '#15133F' : '#1D1B4D'));
+}
+if (window.matchMedia) { const mq = window.matchMedia('(prefers-color-scheme: dark)'); const fn = () => { if (state.settings.look.mode === 'auto') applyLook(); }; if (mq.addEventListener) mq.addEventListener('change', fn); }
 
 /* ---------- veri ---------- */
 function norm(d) {
@@ -244,6 +305,7 @@ function load() {
     const d = JSON.parse(raw);
     state.projects = (d.projects || []).map(norm);
     state.settings = Object.assign({ key: '', model: DEFAULT_MODEL }, d.settings || {});
+    state.settings.look = Object.assign({}, DEF_LOOK, (d.settings && d.settings.look) || {});
     state.chat = Array.isArray(d.chat) ? d.chat : [];
   } catch (e) { /* bozuk kayıt: boş başla */ }
 }
@@ -425,9 +487,23 @@ function chatHTML() {
   h += '<form class="chat-form" data-act="chatsend"><label class="sr" for="chat-in">Mesaj</label><textarea id="chat-in" rows="' + (chatMode === 'import' ? 6 : 2) + '" placeholder="' + (chatMode === 'import' ? 'Başka bir yapay zeka sohbetinden ya da notlarından kopyaladığın metni yapıştır.' : 'Örn. Pilot tesis bütçesini bitirdim, sıradaki işim ne?') + '">' + esc(chatDraft) + '</textarea><div class="row"><button class="btn primary" type="submit"' + (chatBusy ? ' disabled' : '') + '>' + (chatMode === 'import' ? 'Projeleri ayıkla' : 'Gönder') + '</button>' + (state.chat.length ? '<button class="btn" type="button" data-act="clearchat">Sohbeti temizle</button>' : '') + '</div></form>';
   return h;
 }
+function chipsHTML(k, opts, cur, withSw) {
+  return '<div class="chips" role="group">' + opts.map((o) => '<button type="button" class="chip" data-act="look" data-k="' + k + '" data-v="' + o[0] + '" aria-pressed="' + (String(cur) === String(o[0])) + '">' + (withSw && o[2] ? '<span class="sw">' + o[2].map((c) => '<i style="background:' + c + '"></i>').join('') + '</span>' : '') + esc(o[1]) + '</button>').join('') + '</div>';
+}
+function lookHTML() {
+  const l = state.settings.look;
+  const onoff = (k, name) => '<div class="lk"><label>' + name + '</label>' + chipsHTML(k, [['1', 'Açık'], ['0', 'Kapalı']], l[k] ? '1' : '0') + '</div>';
+  return '<div class="form"><h2>Görünüm</h2><p class="small muted">Değişiklikler anında uygulanır ve bu telefonda saklanır.</p>' +
+    '<div class="lk"><label>Tema</label>' + chipsHTML('mode', Object.keys(MODES).map((k) => [k, MODES[k]]), l.mode) + '</div>' +
+    '<div class="lk"><label>Renk paleti</label>' + chipsHTML('palette', Object.keys(PALETTES).map((k) => [k, PALETTES[k].n, PALETTES[k].sw]), l.palette, true) + '</div>' +
+    '<div class="lk"><label>Yazı tipi</label>' + chipsHTML('font', Object.keys(FONTS).map((k) => [k, FONTS[k].n]), l.font) + '</div>' +
+    '<div class="lk"><label>Yazı boyutu</label>' + chipsHTML('size', Object.keys(SIZES).map((k) => [k, SIZES[k][0]]), l.size) + '</div>' +
+    onoff('anim', 'Animasyonlar ve konfeti') + onoff('dots', 'Noktalı arka plan') + onoff('shadow', 'Çıkartma gölgeleri') +
+    '<div class="row"><button class="btn" type="button" data-act="lookreset">Varsayılan görünüme dön</button></div></div>';
+}
 function settingsHTML() {
   const s = state.settings;
-  let h = '<form class="form" data-act="keyform"><h2>Gemini bağlantısı</h2>' +
+  let h = lookHTML() + '<form class="form" data-act="keyform"><h2>Gemini bağlantısı</h2>' +
     '<p class="small muted">Anahtarı <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio</a> sayfasından alırsın. Anahtar yalnızca bu telefonda saklanır ve sadece Gemini\'ye gönderilir.</p>' +
     '<div><label for="set-key">API anahtarı</label><input type="' + (showKey ? 'text' : 'password') + '" id="set-key" autocomplete="off" autocapitalize="off" spellcheck="false" value="' + esc(s.key) + '"></div>' +
     '<div><label for="set-model">Model</label><input type="text" id="set-model" autocapitalize="off" spellcheck="false" value="' + esc(s.model) + '"><p class="small muted" style="margin-top:4px">Varsayılan: ' + DEFAULT_MODEL + '. Model adı değişirse buradan güncelle.</p></div>' +
@@ -469,8 +545,8 @@ function render() {
 
 /* ---------- konfeti ---------- */
 function confetti(x, y) {
-  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const cols = ['#FFD23F', '#0AA5BC', '#F28A1E', '#3FB653', '#9B5CF0', '#E5384F'];
+  if (!state.settings.look.anim || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+  const cs = getComputedStyle(document.documentElement), cols = ['#FFD23F'].concat(['sea', 'hazel', 'ulva', 'plum'].map((n) => cs.getPropertyValue('--' + n).trim() || '#0AA5BC'), ['#E5384F']);
   for (let i = 0; i < 20; i++) {
     const s = document.createElement('span');
     s.className = 'conf'; s.style.left = x + 'px'; s.style.top = y + 'px'; s.style.background = cols[i % cols.length];
@@ -670,6 +746,13 @@ document.addEventListener('click', (e) => {
     case 'delproj': state.projects = state.projects.filter((p) => p.id !== b.dataset.p); confirmDel = null; view = 'home'; save(); render(); break;
     case 'keyshow': { const k = document.getElementById('set-key'), m = document.getElementById('set-model'); if (k) state.settings.key = k.value.trim(); if (m) state.settings.model = m.value.trim() || DEFAULT_MODEL; showKey = !showKey; render(); break; }
     case 'keydel': state.settings.key = ''; testMsg = ''; save(); render(); break;
+    case 'look': {
+      const k = b.dataset.k, v = b.dataset.v, kk = document.getElementById('set-key'), mm = document.getElementById('set-model');
+      if (kk) state.settings.key = kk.value.trim(); if (mm) state.settings.model = mm.value.trim() || DEFAULT_MODEL;
+      state.settings.look[k] = (k === 'anim' || k === 'dots' || k === 'shadow') ? v === '1' : v;
+      applyLook(); save(); render(); break;
+    }
+    case 'lookreset': state.settings.look = Object.assign({}, DEF_LOOK); applyLook(); save(); render(); toast('Görünüm varsayılana döndü.'); break;
     case 'export': exportData(); break;
     case 'wipe': confirmWipe = true; render(); break;
     case 'wipeno': confirmWipe = false; render(); break;
@@ -726,6 +809,7 @@ if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigat
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => { /* gerekli değil */ });
 
 load();
+applyLook();
 render();
 })();
 </script>
