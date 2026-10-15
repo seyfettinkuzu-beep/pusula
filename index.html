@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Proje Pusulası</title>
+<title>Proje Komuta Merkezi</title>
 <meta name="theme-color" content="#0A0805">
 <meta name="description" content="Projelerini, yol haritalarını ve sıradaki adımları takip et; Gemini ile güncelle.">
 <link rel="manifest" href="manifest.webmanifest">
@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Pusula">
+<meta name="apple-mobile-web-app-title" content="Komuta">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
@@ -184,7 +184,10 @@ h1,h2,h3{font-weight:700}
 h1{font-size:clamp(22px,6vw,30px);text-transform:uppercase;letter-spacing:.14em;color:var(--sun);text-shadow:0 0 14px rgba(255,176,0,.45)}
 h2{font-size:18px;text-transform:uppercase;letter-spacing:.09em}
 .hl{background:none;padding:0}
-.top{border-bottom:1px solid rgba(255,176,0,.5);padding-bottom:14px;margin-bottom:22px}
+.top{border-bottom:1px solid rgba(255,176,0,.5);padding-bottom:14px;margin-bottom:22px;align-items:center}
+.brand h1{line-height:1.1}
+.status{display:flex;flex-wrap:wrap;gap:6px 22px;font:500 12px/1.2 var(--f-mono);letter-spacing:.06em;color:var(--muted);margin-left:auto}
+@media (max-width:719px){.status{display:none}}
 .logo .face{fill:none;stroke:var(--sun);stroke-width:2.5}
 .logo .n1{fill:var(--crit);stroke:none}
 .logo .n2{fill:var(--sun);stroke:none}
@@ -403,7 +406,9 @@ const ICONS = {
 };
 function topHTML() {
   if (view.startsWith('p:')) return '<header class="top"><button class="back" data-act="go" data-v="home">‹ Projeler</button><div class="today">' + esc(longDate()) + '</div></header>';
-  return '<header class="top"><div class="brand">' + LOGO + '<h1>Proje <span class="hl">Pusulası</span></h1></div><div class="today">' + esc(longDate()) + '</div></header>';
+  let gd = 0, gt = 0; state.projects.forEach((p) => { const pr = prog(p); gd += pr.done; gt += pr.total; });
+  const stat = '<div class="status"><span>SİSTEM · ' + (navigator.onLine === false ? 'ÇEVRİMDIŞI' : 'ÇEVRİMİÇİ') + '</span><span>AKTİF PROJE · ' + String(state.projects.length).padStart(2, '0') + '</span><span>GÖREV · ' + gd + '/' + gt + '</span></div>';
+  return '<header class="top"><div class="brand">' + LOGO + '<h1>Proje Komuta Merkezi</h1></div>' + stat + '<div class="today">' + esc(longDate()) + '</div></header>';
 }
 function navHTML() {
   const cur = view.startsWith('p:') ? 'home' : view;
@@ -801,6 +806,7 @@ document.addEventListener('submit', async (e) => {
     render();
   }
 });
+window.addEventListener('online', render); window.addEventListener('offline', render);
 window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); installEvt = e; if (view === 'settings') render(); });
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('./sw.js').catch(() => { /* çevrimdışı önbellek olmadan da çalışır */ });
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => { /* gerekli değil */ });
