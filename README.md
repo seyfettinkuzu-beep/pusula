@@ -1,4 +1,4 @@
-# Proje Pusulası (telefon uygulaması)
+# Proje Komuta Merkezi (telefon uygulaması)
 
 Ana ekrana eklenen bir web uygulaması (PWA). Projelerini, yol haritalarını ve sıradaki adımları gösterir;
 Gemini ile konuşarak güncellemeni sağlar. Veri telefonunda kalır.
